@@ -19,7 +19,7 @@ redis = get_redis_connection(
 )
 
 
-# redis storage class for database objects
+# storage class for redis database objects
 class Product(HashModel):
     name: str
     price: float
