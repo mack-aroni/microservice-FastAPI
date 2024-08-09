@@ -2,14 +2,19 @@ import { useNavigate } from "react-router-dom";
 import { Wrapper } from "./Wrapper";
 import { useState } from "react";
 
-// component to create a product throught the management panel
+/*
+ * ProductsCreate component that creates
+ * a product throught the management panel
+ * and adds it to the backend db
+ */
 export const ProductsCreate = () => {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [quantity, setQuantity] = useState("");
   const navigate = useNavigate();
 
-  // submit function to send (name,price,quantity) to database
+  // submit POST function to send (name,price,quantity)
+  // of new product to database
   const submit = async (e) => {
     // prevent page refresh
     e.preventDefault();
