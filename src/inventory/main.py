@@ -41,7 +41,7 @@ def format(pk: str):
     return {
         "id": product.pk,
         "name": product.name,
-        "price:": product.price,
+        "price": product.price,
         "quantity": product.quantity,
     }
 
