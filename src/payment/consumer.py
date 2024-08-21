@@ -1,4 +1,4 @@
-from main import redis, Order
+from main import redis_payment, Order
 import time
 
 key = "order_completed"
@@ -6,14 +6,14 @@ group = "payment-group"
 
 # make redis group
 try:
-    redis.xgroup_create(key, group)
+    redis_payment.xgroup_create(key, group)
 except:
     print("Group already exists")
 
 # runloop
 while True:
     try:
-        results = redis.xreadgroup(group, key, {key: ">"}, None)
+        results = redis_payment.xreadgroup(group, key, {key: ">"}, None)
 
         if results != []:
             for result in results:

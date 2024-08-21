@@ -18,20 +18,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-redis = get_redis_connection(
+redis_payment = get_redis_connection(
     host="redis-18976.c325.us-east-1-4.ec2.redns.redis-cloud.com",
     port="18976",
     password="okJcZKA3idkxU9wpmETECt5oOd9ii8ml",
     decode_responses=True,
-    # host="redis-13809.c246.us-east-1-4.ec2.redns.redis-cloud.com",
-    # port="13809",
-    # password="HbpjwqZHJ7MbcjJtAiqciajv0kWmhF4A",
-    # decode_responses=True,
 )
-""
 
 
-# storage class for redis order objects
+# storage class for redis Order objects
 class Order(HashModel):
     product_id: str
     price: float
@@ -41,16 +36,10 @@ class Order(HashModel):
     status: str  # pending/completed/refunded
 
     class Meta:
-        database = redis
+        database = redis_payment
 
 
-# test endpoint to get an order
-@app.get("/orders/{pk}")
-def get(pk: str):
-    return Order.get(pk)
-
-
-# endpoint to create an Order
+# CREATE endpoint
 @app.post("/orders")
 async def create(request: Request, background_tasks: BackgroundTasks):
     body = await request.json()
@@ -74,9 +63,46 @@ async def create(request: Request, background_tasks: BackgroundTasks):
     return order
 
 
+# RETURN endpoint
+@app.get("/orders/{pk}")
+def get(pk: str):
+    return Order.get(pk)
+
+
+# RETURN ALL endpoint
+@app.get("/orders/all")
+def get_all():
+    return [format(pk) for pk in Order.all_pks()]
+
+
+# helper function to format the data of each order
+def format(pk: str):
+    order = Order.get(pk)
+    return {
+        "id": order.product_id,
+        "price": order.price,
+        "fee": order.fee,
+        "total": order.total,
+        "quantity": order.quantity,
+        "status": order.status,
+    }
+
+
+# DELETE endpoint
+@app.delete("/orders/{pk}")
+def delete(pk: str):
+    return Order.delete(pk)
+
+
+# DELETE ALL endpoint
+@app.delete("/orders")
+def delete_all():
+    return [Order.delete(pk) for pk in Order.all_pks()]
+
+
 # helper function to set an order status to completed
 def order_completed(order: Order):
-    time.sleep(5)
+    time.sleep(5)  # temporary
     order.status = "completed"
     order.save()
-    redis.xadd("order_completed", order.dict(), "*")
+    redis_payment.xadd("order_completed", order.dict(), "*")

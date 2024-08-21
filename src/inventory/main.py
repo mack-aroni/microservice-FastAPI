@@ -1,6 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from redis_om import get_redis_connection, HashModel
+import redis
+import json
 
 app = FastAPI()
 
@@ -11,7 +13,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-redis = get_redis_connection(
+# main redis db connection
+redis_inventory = get_redis_connection(
     host="redis-18976.c325.us-east-1-4.ec2.redns.redis-cloud.com",
     port="18976",
     password="okJcZKA3idkxU9wpmETECt5oOd9ii8ml",
@@ -19,23 +22,35 @@ redis = get_redis_connection(
 )
 
 
-# storage class for redis database objects
+# storage class for redis Product objects
 class Product(HashModel):
     name: str
     price: float
     quantity: int
 
     class Meta:
-        database = redis
+        database = redis_inventory
 
 
-# endpoint that returns products
+# CREATE endpoint
+@app.post("/products")
+def create(product: Product):
+    return product.save()
+
+
+# RETURN endpoint
+@app.get("/products/{pk}")
+def get(pk: str):
+    return Product.get(pk)
+
+
+# RETURN ALL endpoint
 @app.get("/products")
 def products():
     return [format(pk) for pk in Product.all_pks()]
 
 
-# helper funciton to format the data of each product
+# helper function to format the data of each product
 def format(pk: str):
     product = Product.get(pk)
     return {
@@ -46,19 +61,13 @@ def format(pk: str):
     }
 
 
-# endpoint that saves products
-@app.post("/products")
-def create(product: Product):
-    return product.save()
-
-
-# endpoint to return a specific product
-@app.get("/products/{pk}")
-def get(pk: str):
-    return Product.get(pk)
-
-
-# endpoint to delete a specific product
+# DELETE endpoint
 @app.delete("/products/{pk}")
 def delete(pk: str):
     return Product.delete(pk)
+
+
+# DELETE ALLendpoint
+@app.delete("/products/all")
+def delete_all(pk: str):
+    return [Product.delete(pk) for pk in Product.all_pks()]
