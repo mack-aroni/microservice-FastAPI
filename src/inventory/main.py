@@ -46,7 +46,7 @@ def get(pk: str):
 
 # RETURN ALL endpoint
 @app.get("/products")
-def products():
+def get_all():
     return [format(pk) for pk in Product.all_pks()]
 
 
@@ -67,7 +67,22 @@ def delete(pk: str):
     return Product.delete(pk)
 
 
-# DELETE ALLendpoint
-@app.delete("/products/all")
+# DELETE ALL endpoint
+@app.delete("/products")
 def delete_all(pk: str):
     return [Product.delete(pk) for pk in Product.all_pks()]
+
+
+# REST API call to update product quantity if present
+@app.post("/update_quantity/{product_id}")
+def update_quantity(product_id: str, quantity: int):
+    try:
+        product = Product.get(product_id)
+        if product.quantity >= quantity:
+            product.quantity -= quantity
+            product.save()
+            return {"message": "Quantity updated", "product": product}
+        else:
+            raise HTTPException(status_code=400, detail="Insufficient stock")
+    except Product.DoesNotExist:
+        raise HTTPException(status_code=404, detail="Product not found")

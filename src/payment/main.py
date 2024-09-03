@@ -1,7 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.background import BackgroundTasks
-from redis_om import get_redis_connection, HashModel
+from redis_om import get_redis_connection, HashModel, NotFoundError
 from starlette.requests import Request
 import requests, time
 
@@ -18,10 +18,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# redis-db2
 redis_payment = get_redis_connection(
-    host="redis-18976.c325.us-east-1-4.ec2.redns.redis-cloud.com",
-    port="18976",
-    password="okJcZKA3idkxU9wpmETECt5oOd9ii8ml",
+    host="redis-13809.c246.us-east-1-4.ec2.redns.redis-cloud.com",
+    port="13809",
+    password="HbpjwqZHJ7MbcjJtAiqciajv0kWmhF4A",
     decode_responses=True,
 )
 
@@ -58,19 +59,53 @@ async def create(request: Request, background_tasks: BackgroundTasks):
     order.save()
 
     # adds order as a background task to eventually be completed
-    background_tasks.add_task(order_completed, order)
+    background_tasks.add_task(process_order, order)
 
     return order
+
+
+""" @app.post("/orders")
+async def create_order(request: Request, background_tasks: BackgroundTasks):
+    body = await request.json()
+
+    # call the Inventory API to update quantity
+    inventory_service_url = "http://localhost:8000/update_quantity/%s" % body["id"]
+    response = requests.post(inventory_service_url, json={"quantity": body["quantity"]})
+
+    if response.status_code == 200:
+        # successfully created order
+        product_data = response.json()["product"]
+        order = Order(
+            product_id=body["id"],
+            price=product_data["price"],
+            fee=product_data["price"] * FEE,
+            total=product_data["price"] * (1 + FEE),
+            quantity=body["quantity"],
+            status="pending",
+        )
+        order.save()
+
+        # adds order as a background task to eventually be completed
+        background_tasks.add_task(order_completed, order)
+        return order
+    else:
+        # insufficient stock or other errors
+        raise HTTPException(
+            status_code=response.status_code, detail=response.json()["detail"]
+        ) """
 
 
 # RETURN endpoint
 @app.get("/orders/{pk}")
 def get(pk: str):
-    return Order.get(pk)
+    try:
+        return Order.get(pk)
+    except NotFoundError as e:
+        return {"error": str(e)}
 
 
 # RETURN ALL endpoint
-@app.get("/orders/all")
+@app.get("/orders")
 def get_all():
     return [format(pk) for pk in Order.all_pks()]
 
@@ -101,7 +136,7 @@ def delete_all():
 
 
 # helper function to set an order status to completed
-def order_completed(order: Order):
+def process_order(order: Order):
     time.sleep(5)  # temporary
     order.status = "completed"
     order.save()

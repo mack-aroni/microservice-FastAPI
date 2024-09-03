@@ -12,12 +12,15 @@ export const Order = () => {
   // asyncronous call to retrieve price of selected product
   useEffect(() => {
     (async () => {
-      // try catch block to error check
+      // try-catch block to error check
       try {
         if (id) {
           const response = await fetch(`http://localhost:8000/products/${id}`);
+          if (!response.ok) {
+            throw new Error("Product not found");
+          }
           const content = await response.json();
-          const price = parseFloat(content.price) * 1.2;
+          const price = (parseFloat(content.price) * 1.2).toFixed(2);
           setMessage(`Your product price is $${price}`);
         }
       } catch (e) {
@@ -29,7 +32,7 @@ export const Order = () => {
   // submit function to send a POST request to the orders backend
   const submit = async (e) => {
     e.preventDefault();
-    // try catch block to error check
+    // try-catch block to error check
     try {
       await fetch("http://localhost:8001/orders", {
         method: "POST",
