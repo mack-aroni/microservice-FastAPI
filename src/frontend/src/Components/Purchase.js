@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 
 /*
- * Order component thats send an order using the
+ * Purchase component thats send an order using the
  * frontend to be processed by the backend
  */
-export const Order = () => {
+export const Purchase = () => {
   const [id, setId] = useState("");
   const [quantity, setQuantity] = useState("");
   const [message, setMessage] = useState("Buy your favorite product");
@@ -20,7 +20,7 @@ export const Order = () => {
             throw new Error("Product not found");
           }
           const content = await response.json();
-          const price = (parseFloat(content.price) * 1.2).toFixed(2);
+          const price = parseFloat(content.price).toFixed(2);
           setMessage(`Your product price is $${price}`);
         }
       } catch (e) {

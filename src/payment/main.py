@@ -51,8 +51,8 @@ async def create(request: Request, background_tasks: BackgroundTasks):
     order = Order(
         product_id=body["id"],
         price=product["price"],
-        fee=FEE * product["price"],
-        total=(1 + FEE) * product["price"],
+        fee=FEE * product["price"] * float(body["quantity"]),
+        total=(1 + FEE) * product["price"] * float(body["quantity"]),
         quantity=body["quantity"],
         status="pending",
     )
@@ -114,11 +114,12 @@ def get_all():
 def format(pk: str):
     order = Order.get(pk)
     return {
-        "id": order.product_id,
+        "id": order.pk,
+        "pid": order.product_id,
         "price": order.price,
+        "quantity": order.quantity,
         "fee": order.fee,
         "total": order.total,
-        "quantity": order.quantity,
         "status": order.status,
     }
 

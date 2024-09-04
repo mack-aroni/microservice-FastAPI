@@ -24,8 +24,17 @@ export const Wrapper = (props) => {
             <div className="position-sticky pt-3">
               <ul className="nav flex-column">
                 <li className="nav-item">
-                  <a className="nav-link active" aria-current="page" href="#">
+                  <a className="nav-link active" aria-current="page" href="/#">
                     Products
+                  </a>
+                </li>
+                <li className="nav-item">
+                  <a
+                    className="nav-link active"
+                    aria-current="page"
+                    href="/orders"
+                  >
+                    Orders
                   </a>
                 </li>
               </ul>

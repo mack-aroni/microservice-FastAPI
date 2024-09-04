@@ -1,5 +1,6 @@
 import { Products } from "./Components/Products";
-import { Order } from "./Components/Order";
+import { Orders } from "./Components/Orders";
+import { Purchase } from "./Components/Purchase";
 import { ProductsCreate } from "./Components/ProductsCreate";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
@@ -8,8 +9,9 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Products />} />
+        <Route path="/orders" element={<Orders />} />
         <Route path="/create" element={<ProductsCreate />} />
-        <Route path="/order" element={<Order />} />
+        <Route path="/order" element={<Purchase />} />
       </Routes>
     </BrowserRouter>
   );
