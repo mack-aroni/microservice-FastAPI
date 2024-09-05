@@ -45,54 +45,30 @@ class Order(HashModel):
 async def create(request: Request, background_tasks: BackgroundTasks):
     body = await request.json()
 
-    req = requests.get("http://localhost:8000/products/%s" % body["id"])
-    product = req.json()
+    try:
+        req = requests.get("http://localhost:8000/products/%s" % body["id"])
+        product = req.json()
 
-    order = Order(
-        product_id=body["id"],
-        price=product["price"],
-        fee=FEE * product["price"] * float(body["quantity"]),
-        total=(1 + FEE) * product["price"] * float(body["quantity"]),
-        quantity=body["quantity"],
-        status="pending",
-    )
-    order.save()
+        # check if there is enough product quantity to make the purchase
+        if int(body["quantity"]) <= product["quantity"]:
+            order = Order(
+                product_id=body["id"],
+                price=product["price"],
+                fee=FEE * product["price"] * float(body["quantity"]),
+                total=(1 + FEE) * product["price"] * float(body["quantity"]),
+                quantity=body["quantity"],
+                status="pending",
+            )
+            order.save()
 
-    # adds order as a background task to eventually be completed
-    background_tasks.add_task(process_order, order)
+            # adds order as a background task to eventually be completed
+            background_tasks.add_task(process_order, order)
+        else:
+            raise HTTPException(status_code=400, detail="Insufficient stock")
+    except NotFoundError:
+        raise HTTPException(status_code=404, detail="Product not found")
 
     return order
-
-
-""" @app.post("/orders")
-async def create_order(request: Request, background_tasks: BackgroundTasks):
-    body = await request.json()
-
-    # call the Inventory API to update quantity
-    inventory_service_url = "http://localhost:8000/update_quantity/%s" % body["id"]
-    response = requests.post(inventory_service_url, json={"quantity": body["quantity"]})
-
-    if response.status_code == 200:
-        # successfully created order
-        product_data = response.json()["product"]
-        order = Order(
-            product_id=body["id"],
-            price=product_data["price"],
-            fee=product_data["price"] * FEE,
-            total=product_data["price"] * (1 + FEE),
-            quantity=body["quantity"],
-            status="pending",
-        )
-        order.save()
-
-        # adds order as a background task to eventually be completed
-        background_tasks.add_task(order_completed, order)
-        return order
-    else:
-        # insufficient stock or other errors
-        raise HTTPException(
-            status_code=response.status_code, detail=response.json()["detail"]
-        ) """
 
 
 # RETURN endpoint
@@ -139,6 +115,20 @@ def delete_all():
 # helper function to set an order status to completed
 def process_order(order: Order):
     time.sleep(5)  # temporary
-    order.status = "completed"
-    order.save()
-    redis_payment.xadd("order_completed", order.dict(), "*")
+
+    # call the Inventory API to attempt to update quantity
+    inventory_service_url = "http://localhost:8000/update_quantity/%s" % (
+        order.product_id
+    )
+    response = requests.put(inventory_service_url, json={"quantity": order.quantity})
+
+    # successfully updated
+    if response.status_code == 200:
+        order.status = "completed"
+        order.save()
+        redis_payment.xadd("order_completed", order.dict(), "*")
+    # error/unsuccesful update
+    else:
+        order.status = "refunded"
+        order.save()
+        redis_payment.xadd("order_refunded", order.dict(), "*")

@@ -1,8 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from redis_om import get_redis_connection, HashModel
-import redis
-import json
+from pydantic import BaseModel
 
 app = FastAPI()
 
@@ -30,6 +29,11 @@ class Product(HashModel):
 
     class Meta:
         database = redis_inventory
+
+
+# pydantic class for a quantity update request
+class UpdateQuantityRequest(BaseModel):
+    quantity: int
 
 
 # CREATE endpoint
@@ -74,12 +78,13 @@ def delete_all(pk: str):
 
 
 # REST API call to update product quantity if present
-@app.post("/update_quantity/{product_id}")
-def update_quantity(product_id: str, quantity: int):
+@app.put("/update_quantity/{product_id}")
+def update_quantity(product_id: str, request: UpdateQuantityRequest):
+    # attempt to update product quantity from an order
     try:
         product = Product.get(product_id)
-        if product.quantity >= quantity:
-            product.quantity -= quantity
+        if product.quantity >= request.quantity:
+            product.quantity -= request.quantity
             product.save()
             return {"message": "Quantity updated", "product": product}
         else:

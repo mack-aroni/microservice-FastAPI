@@ -1,3 +1,6 @@
+/*
+ * Wrapper component stores the html format of the Management Panel
+ */
 export const Wrapper = (props) => {
   return (
     <>

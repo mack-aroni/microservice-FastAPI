@@ -2,9 +2,14 @@ import { useEffect, useState } from "react";
 import { Wrapper } from "./Wrapper";
 import { Link } from "react-router-dom";
 
+/*
+ * Orders component that retrieves all orders objects
+ * in the backend and formats them in a tablized list
+ */
 export const Orders = () => {
   const [orders, setOrders] = useState([]);
 
+  // asyncronous call to retrieve all objects data
   useEffect(() => {
     (async () => {
       const response = await fetch("http://localhost:8001/orders");
@@ -13,11 +18,17 @@ export const Orders = () => {
     })();
   }, []);
 
+  // delete logic to call order DELETE endpoint
   const del = async (id) => {
     if (window.confirm("Are You Sure To Delete?")) {
       await fetch(`http://localhost:8001/orders/${id}`, { method: "DELETE" });
       setOrders(orders.filter((p) => p.id !== id));
     }
+  };
+
+  // page refresh button logic
+  const handleRefresh = () => {
+    window.location.reload();
   };
 
   return (
@@ -26,9 +37,12 @@ export const Orders = () => {
         <Link to={`/order`} className="btn btn-sm btn-outline-secondary">
           Order
         </Link>
-        <Link to={`/orders`} className="btn btn-sm btn-outline-secondary">
+        <button
+          onClick={handleRefresh}
+          className="btn btn-sm btn-outline-secondary"
+        >
           Refresh
-        </Link>
+        </button>
       </div>
 
       <div className="table-responsive">

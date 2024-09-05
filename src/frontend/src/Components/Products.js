@@ -18,11 +18,17 @@ export const Products = () => {
     })();
   }, []);
 
+  // delete logic to call product DELETE endpoint
   const del = async (id) => {
     if (window.confirm("Are You Sure To Delete?")) {
       await fetch(`http://localhost:8000/products/${id}`, { method: "DELETE" });
       setProducts(products.filter((p) => p.id !== id));
     }
+  };
+
+  // page refresh button logic
+  const handleRefresh = () => {
+    window.location.reload();
   };
 
   return (
@@ -31,9 +37,12 @@ export const Products = () => {
         <Link to={`/create`} className="btn btn-sm btn-outline-secondary">
           Add
         </Link>
-        <Link to={`/`} className="btn btn-sm btn-outline-secondary">
+        <button
+          onClick={handleRefresh}
+          className="btn btn-sm btn-outline-secondary"
+        >
           Refresh
-        </Link>
+        </button>
       </div>
 
       <div className="table-responsive">
