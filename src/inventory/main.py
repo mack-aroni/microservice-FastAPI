@@ -16,17 +16,11 @@ app.add_middleware(
 
 # main redis db connection
 redis_inventory = get_redis_connection(
-    host="redis-18976.c325.us-east-1-4.ec2.redns.redis-cloud.com",
-    port="18976",
-    password="okJcZKA3idkxU9wpmETECt5oOd9ii8ml",
+    host=os.getenv("REDIS_HOST"),
+    port=int(os.getenv("REDIS_PORT", 0)),
+    password=os.getenv("REDIS_ PASSWORD"),
     decode_responses=True,
 )
-# redis_inventory = get_redis_connection(
-#     host=os.getenv("REDIS_INV_HOST"),
-#     port=int(os.getenv("REDIS_PORT", 0)),
-#     password=os.getenv("REDIS_PASSWORD"),
-#     decode_responses=True,
-# )
 
 
 # storage class for redis Product objects

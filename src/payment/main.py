@@ -21,18 +21,11 @@ app.add_middleware(
 
 # redis-db2
 redis_payment = get_redis_connection(
-    host="redis-13809.c246.us-east-1-4.ec2.redns.redis-cloud.com",
-    port="13809",
-    password="HbpjwqZHJ7MbcjJtAiqciajv0kWmhF4A",
+    host=os.getenv("REDIS_HOST"),
+    port=int(os.getenv("REDIS_PORT", 0)),
+    password=os.getenv("REDIS_PASSWORD"),
     decode_responses=True,
 )
-
-# redis_payment = get_redis_connection(
-#     host=os.getenv("REDIS_PAY_HOST"),
-#     port=int(os.getenv("REDIS_PORT", 0)),
-#     password=os.getenv("REDIS_PASSWORD"),
-#     decode_responses=True,
-# )
 
 
 # storage class for redis Order objects
@@ -54,7 +47,7 @@ async def create(request: Request, background_tasks: BackgroundTasks):
     body = await request.json()
 
     try:
-        req = requests.get("http://localhost:8000/products/%s" % body["id"])
+        req = requests.get("http://inventory-service:8000/products/%s" % body["id"])
         product = req.json()
 
         # check if there is enough product quantity to make the purchase
@@ -125,7 +118,7 @@ def process_order(order: Order):
     time.sleep(5)  # temporary
 
     # call the Inventory API to attempt to update quantity
-    inventory_service_url = "http://localhost:8000/update_quantity/%s" % (
+    inventory_service_url = "http://inventory-service:8000/update_quantity/%s" % (
         order.product_id
     )
     response = requests.put(inventory_service_url, json={"quantity": order.quantity})
