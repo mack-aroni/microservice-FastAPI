@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from redis_om import get_redis_connection, HashModel
@@ -12,6 +13,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # main redis db connection
 redis_inventory = get_redis_connection(
     host="redis-18976.c325.us-east-1-4.ec2.redns.redis-cloud.com",
@@ -19,6 +21,12 @@ redis_inventory = get_redis_connection(
     password="okJcZKA3idkxU9wpmETECt5oOd9ii8ml",
     decode_responses=True,
 )
+# redis_inventory = get_redis_connection(
+#     host=os.getenv("REDIS_INV_HOST"),
+#     port=int(os.getenv("REDIS_PORT", 0)),
+#     password=os.getenv("REDIS_PASSWORD"),
+#     decode_responses=True,
+# )
 
 
 # storage class for redis Product objects

@@ -1,0 +1,46 @@
+version: "3.8"
+
+services:
+  inventory-service:
+    build:
+      context: ./src/inventory # Path to inventory Dockerfile
+    container_name: inventory-service
+    ports:
+      - "8000:8000"
+    networks:
+      - app-network
+    environment:
+      - REDIS_HOST=${REDIS_INV_HOST}
+      - REDIS_PORT=${REDIS_INV_PORT}
+      - REDIS_PASSWORD=${REDIS_INV_PASSWORD}
+
+  payment-service:
+    build:
+      context: ./src/payment # Path to payment Dockerfile
+    container_name: payment-service
+    ports:
+      - "8001:8001"
+    networks:
+      - app-network
+    environment:
+      - REDIS_HOST=${REDIS_PAY_HOST}
+      - REDIS_PORT=${REDIS_PAY_PORT}
+      - REDIS_PASSWORD=${REDIS_PAY_PASSWORD}
+    depends_on:
+      - inventory-service
+
+  frontend:
+    build:
+      context: ./src/frontend # Path to frontend Dockerfile
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    networks:
+      - app-network
+    depends_on:
+      - payment-service
+      - inventory-service
+
+networks:
+  app-network:
+    driver: bridge

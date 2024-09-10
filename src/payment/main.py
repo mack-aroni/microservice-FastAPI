@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.background import BackgroundTasks
@@ -25,6 +26,13 @@ redis_payment = get_redis_connection(
     password="HbpjwqZHJ7MbcjJtAiqciajv0kWmhF4A",
     decode_responses=True,
 )
+
+# redis_payment = get_redis_connection(
+#     host=os.getenv("REDIS_PAY_HOST"),
+#     port=int(os.getenv("REDIS_PORT", 0)),
+#     password=os.getenv("REDIS_PASSWORD"),
+#     decode_responses=True,
+# )
 
 
 # storage class for redis Order objects
