@@ -25,5 +25,4 @@ As part of the microservice format the two redis DBs should be two separate DBs.
 
 # Backend Breakdown
 The two independant microservices, payment and inventory, utilize the redis ORMs and allow communication through REST stlye API calls. <br />
-They both provide CRUD style operations for use through the frontend interface and also include a simulated payment pipeline with <br />
-initial checking, payment submitting, allowing for processing time, and payment confirmation or refunding.
+They both provide CRUD style operations for use through the frontend interface and also include a simulated payment pipeline with initial checking, payment submitting, allowing for processing time, and payment confirmation or refunding.
